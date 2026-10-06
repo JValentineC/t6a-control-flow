@@ -8,7 +8,8 @@
 #   1. Checks that Git and Python are installed
 #   2. Makes sure Git knows your name and email (for commits)
 #   3. Checks that you made your own copy of the repo on GitHub
-#   4. Clones YOUR copy into your Documents folder
+#   4. Clones YOUR copy into the folder PowerShell is currently in
+#      (cd to where you keep your code first, e.g. cd ~\Documents\apps)
 #   5. Opens it in VS Code
 # ------------------------------------------------------------------
 
@@ -100,10 +101,20 @@
     }
     Good "Found $RepoPage"
 
-    # --- 5. Clone into Documents ---------------------------------
+    # --- 5. Clone into the folder PowerShell is in right now -----
     Say "Step 5: Downloading your repo..."
-    $Documents = [Environment]::GetFolderPath("MyDocuments")
-    $Dest      = Join-Path $Documents $RepoName
+    $Here = (Get-Location).Path
+    if ($Here -like "*\Windows\System32*") {
+        Stop-Setup "PowerShell is in a Windows system folder. Run: mkdir ~\Documents\apps -Force; cd ~\Documents\apps  then run the setup command again."
+        return
+    }
+    $Dest = Join-Path $Here $RepoName
+    Write-Host "  Your repo will be downloaded to: $Dest" -ForegroundColor Yellow
+    $answer = Read-Host "  Is that where you want your code? (y/n)"
+    if ($answer -notmatch "^[yY]") {
+        Stop-Setup "Use cd to go to the folder you want (for example: cd ~\Documents\apps), then run the setup command again."
+        return
+    }
 
     if (Test-Path $Dest) {
         Good "Folder already exists, skipping download: $Dest"
